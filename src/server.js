@@ -1,16 +1,13 @@
 'use strict';
 
 var mongo = require('./mongo_functions');
-var passport = require('passport');
 var express = require('express');
 var http = require('http');
 var app = express();
 var bodyParser = require('body-parser');
 var mongoose = require('../authenticate/mongoose');
-require('../authenticate/config_passport')(passport);
+var passport = require('../authenticate/config_passport');
 
-app.use(passport.initialize());
-app.use(passport.session());
 
 // This is the middleware
 app.use(bodyParser.json());
@@ -19,15 +16,20 @@ app.use(function (req, res, next) {
   isAuthenticated(req, res, next);
 });
 
-app.post('/login',
-  passport.authenticate('local', { failureRedirect: '/login' }),
-  function(req, res, next) {
-    // User has successfully logged in here (working), send wherever you want them to go
-    var apiKey = mongoose.getAPI(req, res);
-    console.log(req.headers);
-    //res.addHeader("x-api-key", apiKey);
-    res.redirect('/note');
-  });
+app.post('/login', function(req, res) {
+ var username = req.body.username;
+ var password = req.body.password;
+
+  passport.authenticate(username, password, function(goodLogin) {
+  console.log(goodLogin + ' logged in');
+  // User has successfully logged in here (working), send wherever you want them to go
+  var apiKey = mongoose.getAPI(req, res);
+  //console.log(req.headers);
+  //res.addHeader("x-api-key", apiKey);fu
+  res.redirect('/note');
+});
+
+});
 
 app.get('/', function(req, res) {
   res.status(200).send('Please use /note to access pages');
@@ -65,11 +67,11 @@ var isAuthenticated = function(req, res, next) {
   if (req.path === '/login') return next();
 
   console.log('getting here');
-  //console.log(req);
+  console.log(req.headers);
 
   var apiKey = req.headers['x-api-key'];
     mongoose.User.findOne({ keygen: apiKey },function(err, user) {
-      console.log('user is ' + user);
+      //console.log('user is ' + user);
       if (err) {
         return err;
       }
