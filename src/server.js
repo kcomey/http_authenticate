@@ -13,17 +13,23 @@ var validate = require('../authenticate/validateRequest');
 
 // This is the middleware
 app.use(bodyParser.json());
-app.use(session({resave: true, secret: 'JohnWayne',
-  saveUninitialized: true}));
+app.use(session({
+  resave: true,
+  secret: 'JohnWayne',
+  saveUninitialized: true,
+}));
 
 // Crediting Arvind Ravulavaru and Nick Peters
 app.all('/note/*', function(req, res, next) {
+  console.log(token);
   var token = (req.session.token || req.headers['x-api-key']);
   if (!token) {
     res.status(401).send('Not valid user');
   } else {
     // Authorize the user to see if s/he can access our resources
-    mongoose.User.findOne({ keygen: token }, function (err, userToken) {
+    mongoose.User.findOne({
+      keygen: token,
+    }, function(err, userToken) {
       // Good to go
       if (userToken) {
         next();
@@ -35,15 +41,14 @@ app.all('/note/*', function(req, res, next) {
 });
 
 app.post('/login', function(req, res) {
- var username = req.body.username;
- var password = req.body.password;
+  var username = req.body.username;
+  var password = req.body.password;
 
- passport.authenticate(username, password, function(err, goodLogin) {
-    // User has successfully logged in here (working), send wherever you want them to go
+  passport.authenticate(username, password, function(err, goodLogin) {
+    // User has successfully logged in here (working)
     if (!goodLogin) {
       res.status(401).send('Could not log user in');
-    }
-    else {
+    } else {
       req.session.token = goodLogin;
       res.status(200).send(goodLogin);
     }
@@ -81,7 +86,7 @@ app.listen(process.env.PORT || 3000, function() {
   console.log('server started');
 });
 
-/*var isAuthenticated = function(req, res, next) {
+/* Var isAuthenticated = function(req, res, next) {
   // If they are just logging in they don't need to be authenticated yet
   if (req.path === '/login') return next();
 
@@ -104,8 +109,3 @@ app.listen(process.env.PORT || 3000, function() {
       }
   });
 };*/
-
-
-
-
-
