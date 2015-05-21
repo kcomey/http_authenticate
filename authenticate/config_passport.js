@@ -6,23 +6,20 @@ module.exports.authenticate = function(username, password, callback) {
 
     mongo.User.findOne({ username: username }, function (err, user) {
         if (!user) {
-          return err;
+          callback();
         }
-        if (user.password != password) {
-          return err;
+        else if (user.password != password) {
+          callback();
         }
+        else {
         // If username and password match
         var userKey = keygen.url(keygen.medium);
         // Write the keygen to the user file to check later
-        mongo.User.findOneAndUpdate({_id: user.id}, {keygen: userKey}, {new: true},
-          function(err, result) {
-            if (err) {
-              return false;
-            };
-          }
-        )
-        console.log('User was logged in successfully' + userKey);
-        callback(userKey);
+        mongo.User.findOneAndUpdate({username: username}, {keygen: userKey}, {new: true},
+          function(err, user) {
+            callback(err, user);
+          });
+      }
     });
 };
 
